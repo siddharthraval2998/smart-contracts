@@ -16,13 +16,13 @@ contract InheritanceVault is AccessControl {
     uint256 public constant INACTIVITY_PERIOD = 30 seconds; // 30 seconds for quick testing. 
 
     // Consider indexing more of the event params to search through them later.  
-    event HeirChanged(address oldHeir, address newHeir);
+    event HeirChanged(address oldHeir, address nextHeir);
     event Deposit(address sender, uint256 amount);
     event Withdrawal(address owner, uint256 amount);
     event InheritanceClaimed(address indexed oldOwner, address indexed newOwner, address indexed nextOwner);
 
     constructor(address _heir) payable {
-        require(_heir != address(0), "Heir cannot be zero address");
+        require(_heir != address(0) && _heir != msg.sender, "There must ALWAYS be an Heir to the throne!");
 
         // Grant default admin and owner roles to the deployer
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -87,18 +87,18 @@ contract InheritanceVault is AccessControl {
 
 
     // Provides a mechanism for changing heirs apart from claims (in case your heir pissed you off).
-    function changeHeir(address newHeir) external onlyRole(OWNER_ROLE) {
-        require(newHeir != address(0), "New heir cannot be zero address");
+    function changeHeir(address nextHeir) external onlyRole(OWNER_ROLE) {
+        require(nextHeir != address(0) && nextHeir != msg.sender, "There must ALWAYS be an Heir to the throne!");
 
         address oldHeir = heir;
 
         // Revoke the old heir's role and grant HEIR_ROLE to the new heir
         _revokeRole(HEIR_ROLE, oldHeir);
-        _grantRole(HEIR_ROLE, newHeir);
+        _grantRole(HEIR_ROLE, nextHeir);
 
-        heir = newHeir;
+        heir = nextHeir;
         
-        emit HeirChanged(oldHeir, newHeir);
+        emit HeirChanged(oldHeir, nextHeir);
     }
 
 
